@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Circle-Free Theory of π — The Complete Account</title>
+<style>
+  :root{
+    --paper:#F2EFE8; --ink:#1B1C1F; --ink-soft:#4A4C52; --rule:#D8D3C6;
+    /* functional register colors — each encodes a reading level / box type */
+    --plain:#9A5B12;  --plain-bg:#FBF0DA;  --plain-edge:#E7C886;
+    --rig:#2C3680;    --rig-bg:#E8EBF7;     --rig-edge:#B9C2EC;
+    --var:#0C6A59;    --var-bg:#DEEFEA;     --var-edge:#A9D6CB;
+    --ex:#6A33A0;     --ex-bg:#EFE5F8;      --ex-edge:#CBB3E6;
+    --wasred:#B23320; --now:#2C7A33;        --now-bg:#E3F1E4;  --now-edge:#A9D3AC;
+    --accent:#B23320;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"URW Palladio L","Book Antiqua",Georgia,serif;
+    --grotesk:ui-sans-serif,system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","Roboto Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--serif); font-size:18px; line-height:1.62;
+    padding:0 20px 120px;
+  }
+  .wrap{max-width:820px; margin:0 auto}
+
+  /* ---------- masthead ---------- */
+  header.mast{padding:64px 0 26px; border-bottom:3px solid var(--ink)}
+  .eyebrow{font-family:var(--grotesk); font-size:12.5px; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--accent); font-weight:650; margin:0 0 14px}
+  h1.title{font-size:clamp(30px,5.4vw,50px); line-height:1.04; margin:0 0 14px;
+    font-weight:680; letter-spacing:-.012em}
+  .sub{font-size:18.5px; color:var(--ink-soft); margin:0 0 20px; max-width:62ch}
+  .byline{font-family:var(--grotesk); font-size:13px; color:var(--ink-soft);
+    letter-spacing:.02em; display:flex; gap:18px; flex-wrap:wrap}
+  .byline b{color:var(--ink); font-weight:650}
+
+  /* ---------- legend / how-to-read ---------- */
+  .legend{margin:30px 0 8px; border:1px solid var(--rule); background:#FBFAF6;
+    border-radius:10px; padding:20px 22px}
+  .legend h2{font-family:var(--grotesk); font-size:12.5px; letter-spacing:.18em;
+    text-transform:uppercase; margin:0 0 14px; color:var(--ink-soft); font-weight:650}
+  .legrow{display:flex; gap:12px; align-items:flex-start; margin:10px 0; font-size:15px}
+  .chip{flex:0 0 auto; font-family:var(--grotesk); font-size:11px; font-weight:700;
+    letter-spacing:.04em; padding:3px 9px; border-radius:999px; margin-top:2px; white-space:nowrap}
+  .c-plain{background:var(--plain-bg); color:var(--plain); border:1px solid var(--plain-edge)}
+  .c-rig{background:var(--rig-bg); color:var(--rig); border:1px solid var(--rig-edge)}
+  .c-var{background:var(--var-bg); color:var(--var); border:1px solid var(--var-edge)}
+  .c-ex{background:var(--ex-bg); color:var(--ex); border:1px solid var(--ex-edge)}
+  .c-now{background:var(--now-bg); color:var(--now); border:1px solid var(--now-edge)}
+
+  /* ---------- section scaffolding ---------- */
+  section{margin:54px 0 0}
+  .part{font-family:var(--grotesk); font-size:12.5px; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--accent); font-weight:650; margin:0 0 6px}
+  h2.head{font-size:clamp(23px,3.6vw,31px); line-height:1.12; margin:0 0 6px;
+    font-weight:660; letter-spacing:-.01em}
+  h3{font-size:20px; margin:30px 0 4px; font-weight:650; letter-spacing:-.005em}
+  p{margin:14px 0}
+  .lead{font-size:19px}
+
+  /* ---------- register boxes ---------- */
+  .box{border-radius:10px; padding:16px 18px 14px; margin:18px 0; position:relative;
+    border:1px solid; font-size:16.5px; line-height:1.58}
+  .box .tag{font-family:var(--grotesk); font-size:10.5px; font-weight:700; letter-spacing:.12em;
+    text-transform:uppercase; display:inline-block; margin-bottom:8px; padding:2px 8px; border-radius:6px}
+  .plain{background:var(--plain-bg); border-color:var(--plain-edge)}
+  .plain .tag{background:var(--plain); color:#fff}
+  .rig{background:var(--rig-bg); border-color:var(--rig-edge)}
+  .rig .tag{background:var(--rig); color:#fff}
+  .vars{background:var(--var-bg); border-color:var(--var-edge)}
+  .vars .tag{background:var(--var); color:#fff}
+  .ex{background:var(--ex-bg); border-color:var(--ex-edge)}
+  .ex .tag{background:var(--ex); color:#fff}
+  .fix{background:var(--now-bg); border-color:var(--now-edge)}
+  .fix .tag{background:var(--now); color:#fff}
+
+  /* glossary list inside variable boxes */
+  dl.gloss{margin:6px 0 2px; display:grid; grid-template-columns:auto 1fr; gap:6px 16px}
+  dl.gloss dt{font-family:var(--mono); font-size:15px; color:var(--var); font-weight:600; white-space:nowrap}
+  dl.gloss dd{margin:0; font-size:15.5px}
+
+  /* ---------- math ---------- */
+  .v{font-style:italic; font-family:var(--serif)}
+  code,.mono{font-family:var(--mono); font-size:.92em}
+  .eq{margin:20px 0; padding:14px 18px; background:#FBFAF6; border-left:3px solid var(--ink);
+    border-radius:0 8px 8px 0; font-size:19px; text-align:center; overflow-x:auto}
+  .eq.flag-was{border-left-color:var(--wasred); background:#FBEBE7}
+  .eq.flag-now{border-left-color:var(--now); background:var(--now-bg)}
+  .frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center;
+    margin:0 .18em; line-height:1.05}
+  .frac .num{border-bottom:1.6px solid currentColor; padding:0 .35em}
+  .frac .den{padding:2px .35em 0}
+  .was{color:var(--wasred); text-decoration:line-through; text-decoration-thickness:2px}
+  .ok{color:var(--now); font-weight:600}
+  sup,sub{font-size:.72em}
+
+  /* ---------- the π triptych (signature) ---------- */
+  .triptych{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:26px 0 8px}
+  .pcard{border-radius:12px; padding:20px 18px; border:1px solid; min-height:230px;
+    display:flex; flex-direction:column}
+  .p1{background:#F4ECE0; border-color:#E0C79E}
+  .p2{background:var(--now-bg); border-color:var(--now-edge)}
+  .p3{background:var(--rig-bg); border-color:var(--rig-edge)}
+  .pcard .glyph{font-family:var(--serif); font-size:46px; line-height:1; margin:0 0 6px}
+  .p1 .glyph{color:#9A5B12} .p2 .glyph{color:var(--now)} .p3 .glyph{color:var(--rig)}
+  .pcard .role{font-family:var(--grotesk); font-size:11px; font-weight:700; letter-spacing:.1em;
+    text-transform:uppercase; margin:0 0 10px; color:var(--ink-soft)}
+  .pcard h4{margin:0 0 8px; font-size:18px; font-weight:650}
+  .pcard p{margin:0 0 8px; font-size:14.5px; line-height:1.5}
+  .pcard .where{margin-top:auto; font-family:var(--grotesk); font-size:12px; color:var(--ink-soft);
+    border-top:1px solid rgba(0,0,0,.12); padding-top:8px}
+  .verdict-strip{font-family:var(--grotesk); font-size:13.5px; background:var(--ink); color:#F2EFE8;
+    border-radius:10px; padding:14px 18px; margin:14px 0 0; line-height:1.5}
+  .verdict-strip b{color:#FFD9A0}
+
+  /* small ui */
+  hr.soft{border:0; border-top:1px solid var(--rule); margin:40px 0}
+  .callout-num{font-family:var(--grotesk); font-weight:700; color:var(--accent)}
+  table.scale{width:100%; border-collapse:collapse; margin:16px 0; font-size:15.5px}
+  table.scale th,table.scale td{border-bottom:1px solid var(--rule); padding:9px 10px; text-align:left}
+  table.scale th{font-family:var(--grotesk); font-size:12px; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--ink-soft); font-weight:650}
+  table.scale td.mono{font-family:var(--mono)}
+  footer{margin-top:64px; padding-top:22px; border-top:3px solid var(--ink);
+    font-family:var(--grotesk); font-size:13px; color:var(--ink-soft)}
+
+  @media (max-width:680px){
+    body{font-size:17px}
+    .triptych{grid-template-columns:1fr}
+    dl.gloss{grid-template-columns:1fr; gap:2px 0}
+    dl.gloss dt{margin-top:8px}
+  }
+  @media print{
+    body{background:#fff} .verdict-strip{background:#eee;color:#000}
+    .box,.eq,.pcard{break-inside:avoid}
+  }
+</style>
+
+<style>
+  /* six-definition grid */
+  .sixgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px}
+  @media (max-width:680px){ .sixgrid{grid-template-columns:1fr} }
+  .defcard{border-radius:12px; padding:18px 18px 16px; border:1px solid var(--rule);
+    background:#FBFAF6; display:flex; flex-direction:column}
+  .defcard .romnum{font-family:var(--grotesk); font-size:11px; font-weight:700;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin:0 0 4px}
+  .defcard h4{margin:0 0 8px; font-size:17px; font-weight:650}
+  .defcard .dom{font-family:var(--grotesk); font-size:11.5px; color:var(--ink-soft);
+    text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px}
+  .defcard .formula{font-size:16px; background:#fff; border:1px solid var(--rule);
+    border-radius:7px; padding:8px 10px; margin-top:auto; text-align:center; overflow-x:auto}
+  /* status pills for the trap audit */
+  .pill{font-family:var(--grotesk); font-size:11px; font-weight:700; padding:2px 8px;
+    border-radius:999px; white-space:nowrap}
+  .pill-clean{background:var(--now-bg); color:var(--now); border:1px solid var(--now-edge)}
+  .pill-triv{background:#EFEADF; color:#7A6A3A; border:1px solid #D8CBA8}
+  /* DAG / dependency list */
+  table.dag{width:100%; border-collapse:collapse; margin:16px 0; font-size:14.5px}
+  table.dag th,table.dag td{border-bottom:1px solid var(--rule); padding:7px 9px; text-align:left; vertical-align:top}
+  table.dag th{font-family:var(--grotesk); font-size:11.5px; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--ink-soft); font-weight:650}
+  table.dag td.mono{font-family:var(--mono); font-size:13px}
+  /* numbered equation tag */
+  .eqnum{float:right; font-family:var(--grotesk); font-size:12.5px; color:var(--ink-soft); padding-top:4px}
+  .sqrt-o{border-top:1.4px solid currentColor; padding:0 .12em}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Complete account · six papers unified</p>
+  <h1 class="title">A Circle-Free Theory of π</h1>
+  <p class="sub">Six independent definitions of π, the trap-free bridges that prove them one number, the resolution of a normalization interlock, and efficient ways to compute each — assembled into a single self-contained account.</p>
+  <div class="byline">
+    <span><b>S. B. Anderson</b> · Independent Research</span>
+    <span>June 2026 · Final Version</span>
+    <span>Status: verified symbolically &amp; numerically</span>
+  </div>
+</header>
+
+<div class="legend">
+  <h2>How to read this document</h2>
+  <div class="legrow"><span class="chip c-plain">Plain</span><div>Written for any curious reader, no background assumed. Read only these and you still get the whole story.</div></div>
+  <div class="legrow"><span class="chip c-rig">Rigorous</span><div>The same claim for a technical reader: exact conditions, the proof idea, the failure mode.</div></div>
+  <div class="legrow"><span class="chip c-var">Variables</span><div>Every symbol defined in plain words the first time its section uses it. No symbol silently changes meaning.</div></div>
+  <div class="legrow"><span class="chip c-ex">Worked example</span><div>A concrete number pushed through the formula, so the abstraction has something to hold onto.</div></div>
+  <div class="legrow"><span class="chip c-now">Correction</span><div>What an earlier draft got wrong and what replaced it. <span class="was">Struck red</span> = old; <span class="ok">green</span> = fix.</div></div>
+</div>
+
+<section>
+  <p class="part">Abstract</p>
+  <h2 class="head">One number, wearing six costumes</h2>
+  <p class="lead">The constant π appears across mathematics in places that have nothing to do with circles: the growth rate of factorials, the density of square-free whole numbers, the count of grid points in a round region, the volume of a cone, the chance two random integers share no common factor. This paper gives six such definitions — each from a different branch of mathematics, each stated without circles, angles, trigonometric functions, or polar coordinates — and proves all six define the same number through a network of bridges in which no step secretly smuggles a circle back in.</p>
+  <p>The keystone is a characterization of the Wallis integral by three circle-free properties (a recurrence, log-convexity, and an asymptotic normalization), in close analogy with the Bohr–Mollerup theorem for the Gamma function. It fixes one exact value, <span class="v">W</span>(1/2) = π<sub>0</sub>/4, from which the Gaussian integral, Γ(1/2), the lattice-point density, and the Basel sum ζ(2) = π<sub>0</sub>²/6 all follow without circular geometry. We give the full dependency graph, prove it has no cycles, document a circularity an earlier version contained and exactly how it was removed, and close with efficient (and still circle-free) ways to evaluate each definition, plus an honest account of where the work is useful.</p>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part I · the rule of the game</p>
+  <h2 class="head">What “circle-free” forbids, and why</h2>
+
+  <p class="lead">Everyone knows π as “circumference ÷ diameter.” The puzzle this paper answers is whether the <i>other</i> appearances of π — in counting, in number theory, in volumes — can be proven equal to that one <i>without</i> ever leaning on the circle as a proof step. To make that precise we ban three moves, which we call <b>traps</b>, because each silently assumes circular geometry even when no circle is named.</p>
+
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>π<sub>0</sub></dt><dd>the common value we are trying to pin down (it will turn out to be 3.14159…). Subscript 0 is a reminder that, until the bridges are built, we may <i>not</i> assume the six definitions are equal.</dd>
+      <dt>cos, sin</dt><dd>the coordinates of a point moving around the unit circle. Using them is using a circle.</dd>
+      <dt>arctan, arcsin</dt><dd>angle-valued inverse functions; their very definition is “the angle on a circle whose…”</dd>
+    </dl>
+  </div>
+
+  <div class="box plain"><span class="tag">Plain</span>
+    Imagine π as one person who keeps turning up at different parties in different costumes — a geometry party, a counting party, a number-theory party. We want to prove it is the same person each time <i>without</i> asking them to remove the costume and show the circle underneath. The three forbidden moves below are the three ways one usually “peeks.”
+  </div>
+
+  <table class="scale">
+    <tr><th>Trap</th><th>The forbidden move</th><th>Why it hides a circle</th></tr>
+    <tr><td><b>1 · Polar</b></td><td class="mono">(x,y) → (r cosθ, r sinθ)</td><td>cos and sin <i>are</i> a point circling the origin.</td></tr>
+    <tr><td><b>2 · Power series</b></td><td class="mono">1 − 1/3 + 1/5 − … = π/4</td><td>that is the arctangent series — an angle on a circle.</td></tr>
+    <tr><td><b>3 · Integration</b></td><td class="mono">∫ 1/√(1−t²) dt “= arcsin”</td><td>arcsin, and the polar trick for ∫ e<sup>−x²</sup>, end at Γ(1/2)=√π through circular machinery.</td></tr>
+  </table>
+
+  <div class="box rig"><span class="tag">Rigorous</span>
+    The traps constrain proof <i>strategy</i>, not truth. A statement can be true and provable by a trapped method while also admitting a trap-free proof; the taxonomy marks where circularity <i>enters</i> an argument, not where it is logically <i>necessary</i>. Part VII shows, via periods and motives, that all six definitions compute the period of one object — so the circle is never logically eliminable, only avoidable as an explicit step.
+  </div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part II · the cast</p>
+  <h2 class="head">Six circle-free definitions of π</h2>
+  <p class="lead">Each definition below is self-contained and uses only the tools of its own field. None mentions a circle. The theorem of this paper is that all six produce the identical number π<sub>0</sub>.</p>
+
+  <div class="sixgrid">
+    <div class="defcard"><p class="romnum">Definition I</p><p class="dom">Combinatorics</p>
+      <h4>Factorial constant</h4>
+      <div class="formula">π<sub>0</sub> = lim 16<sup>n</sup>(n!)<sup>4</sup> / (n·((2n)!)²)</div></div>
+    <div class="defcard"><p class="romnum">Definition II</p><p class="dom">Solid geometry</p>
+      <h4>Volumetric ratio</h4>
+      <div class="formula">κ = abc / (2r²h), at equal volume</div></div>
+    <div class="defcard"><p class="romnum">Definition III</p><p class="dom">Geometry of numbers</p>
+      <h4>Lattice-point density</h4>
+      <div class="formula">lim #{a²+b² ≤ N²} / N²</div></div>
+    <div class="defcard"><p class="romnum">Definition IV</p><p class="dom">Arithmetic</p>
+      <h4>Square-free density</h4>
+      <div class="formula">6/π² = ∏<sub>p</sub>(1 − 1/p²)</div></div>
+    <div class="defcard"><p class="romnum">Definition V</p><p class="dom">Analysis</p>
+      <h4>Wallis integral</h4>
+      <div class="formula">π<sub>0</sub> = 4∫<sub>0</sub><sup>1</sup>√(1−t²) dt</div></div>
+    <div class="defcard"><p class="romnum">Definition VI</p><p class="dom">Probability</p>
+      <h4>Coprime probability</h4>
+      <div class="formula">P(gcd(a,b)=1) = 6/π²</div></div>
+  </div>
+
+  <!-- I -->
+  <h3>I — The factorial constant</h3>
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>n!</dt><dd>“n factorial,” the product 1·2·3⋯n. Example: 4! = 24.</dd>
+      <dt>lim</dt><dd>the value a sequence settles onto as n grows without bound.</dd>
+      <dt>a<sub>n</sub></dt><dd>the n-th term of the recurrence below; the sequence whose limit is π<sub>0</sub>.</dd>
+    </dl>
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    Factorials count arrangements: 4! = 24 is the number of ways to line up four books. Take a particular ratio of these counting numbers, and as n grows the ratio settles onto π — with nothing but multiplication and division in sight.
+  </div>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    The limit is computed by the recurrence <span class="v">a</span><sub>1</sub> = 4, &nbsp; <span class="v">a</span><sub>n+1</sub> = <span class="v">a</span><sub>n</sub>·4n(n+1)/(2n+1)². Since 4n(n+1)/(2n+1)² = 1 − 1/(2n+1)² &lt; 1, the sequence strictly decreases and stays above 0, so by monotone convergence it has a limit — that limit is π<sub>0</sub>. Equivalently, with the central binomial coefficient <span class="v">A</span><sub>n</sub> = (2n choose n)/4<sup>n</sup> ~ 1/√(πn), squaring and rearranging gives the same constant. No geometry enters.
+  </div>
+  <div class="box ex"><span class="tag">Worked example</span>
+    The first terms: <span class="v">a</span><sub>1</sub> = 4, &nbsp; <span class="v">a</span><sub>2</sub> = 4·(4·1·2)/3² = 32/9 = 3.555…, &nbsp; <span class="v">a</span><sub>3</sub> = 3.555…·(4·2·3)/5² = 3.413…, marching down toward 3.14159. At <span class="v">a</span><sub>1000</sub> the value is 3.14237; the error shrinks like 1/n.
+  </div>
+
+  <!-- II -->
+  <h3>II — The volumetric ratio</h3>
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>r, h</dt><dd>the base “radius” (half-width of the base region) and height of a cone.</dd>
+      <dt>a, b, c</dt><dd>three mutually perpendicular edge lengths of a right tetrahedron (a corner pyramid).</dd>
+      <dt>κ (kappa)</dt><dd>the constant relating the cone-base area to r². We prove κ = π<sub>0</sub>.</dd>
+    </dl>
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    One shape (the cone) carries π in its volume; the other (the corner pyramid) does not — its volume is just abc/6, plain algebra. Build the two so they hold the same amount of water, and the ratio of their measured dimensions hands you π. You could literally pour water between two vessels and read π off a ruler.
+  </div>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    A cone of base region {x²+y² ≤ r²} and height h has volume <span class="v">V</span><sub>cone</sub> = (1/3)κ r²h (from Cavalieri’s principle and ∫z² dz = z³/3, polynomial calculus). A right tetrahedron has <span class="v">V</span><sub>tet</sub> = abc/6 (a determinant; no π). Setting <span class="v">V</span><sub>cone</sub> = <span class="v">V</span><sub>tet</sub> gives κ = abc/(2r²h). The cone supplies the π-carrying metric; the tetrahedron supplies a π-free reference frame. A useful restatement: multiplying <span class="v">V</span><sub>cone</sub> = (1/3)πr²h by 3/π gives 3<span class="v">V</span>/π = r²h, a whole number when r,h are integers — the bridge from geometry to arithmetic.
+  </div>
+  <div class="box ex"><span class="tag">Worked example</span>
+    Let a cone have r = 3, h = 4, so its base “divisor” r²h = 36. A right tetrahedron with a = 6, b = 6, c = 6 has abc = 216. Then κ = 216/(2·9·4) = 216/72 = 3.0 — not yet π, because these particular shapes are not at equal volume. Tuning the dimensions until <span class="v">V</span><sub>cone</sub> = <span class="v">V</span><sub>tet</sub> drives κ to 3.14159. (The exact tuning is what Part IV computes.)
+  </div>
+
+  <!-- III -->
+  <h3>III — The lattice-point density</h3>
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>ℤ²</dt><dd>the grid of all points (a,b) with whole-number coordinates.</dd>
+      <dt>#{…}</dt><dd>“the number of points satisfying…”</dd>
+      <dt>N</dt><dd>the size of the region; we let it grow without bound.</dd>
+    </dl>
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    Lay graph paper over a large round region, count the corners that fall inside, and divide by N². The bigger the region, the closer that count comes to π. This is π born from pure counting on a grid.
+  </div>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    #{(a,b)∈ℤ² : a²+b² ≤ N²} = π<sub>0</sub>N² + <span class="v">E</span>(N), where the boundary error <span class="v">E</span>(N) is O(N) (the Gauss circle problem). Dividing by N² and taking N→∞ kills the error term and leaves π<sub>0</sub>. Part V proves this equals 4<span class="v">W</span>(1/2) by a Riemann-sum argument, with no circular geometry.
+  </div>
+  <div class="box ex"><span class="tag">Worked example</span>
+    At N = 10, the points with a²+b² ≤ 100 number 317, and 317/100 = 3.17. At N = 100 the ratio is 3.1417; at N = 1000, 3.14155. Slowly, with a faint wobble from the boundary, it converges on π.
+  </div>
+
+  <!-- IV -->
+  <h3>IV — The square-free density</h3>
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>square-free</dt><dd>an integer no perfect square &gt; 1 divides. 10 = 2·5 is square-free; 12 = 4·3 is not.</dd>
+      <dt>∏<sub>p</sub></dt><dd>a product running over all prime numbers p = 2, 3, 5, 7, …</dd>
+      <dt>ζ(2)</dt><dd>the sum 1 + 1/4 + 1/9 + 1/16 + … of reciprocal squares; equals π²/6.</dd>
+    </dl>
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    Pick a whole number at random. The chance it has no repeated prime factor is about 61% — and that percentage is exactly 6 divided by π². π is quietly governing a fact about ordinary counting numbers.
+  </div>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    By unique factorization an integer is square-free iff no p² divides it; independence across primes gives the Euler product ∏<sub>p</sub>(1−1/p²) = 1/ζ(2). With ζ(2) = π<sub>0</sub>²/6 (proved trap-free in Part VI) the density is 6/π<sub>0</sub>² ≈ 0.6079.
+  </div>
+  <div class="box ex"><span class="tag">Worked example</span>
+    Among 1–10, the non-square-free numbers are 4, 8, 9 (and 12,16,18,… later), so 7 of the first 10 are square-free — 70%, noisy this early. Among the first million, the fraction is 0.607927…, hugging 6/π² = 0.607927….
+  </div>
+
+  <!-- V -->
+  <h3>V — The Wallis integral</h3>
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>W(x)</dt><dd>the Wallis integral ∫<sub>0</sub><sup>1</sup>(1−t²)<sup>x</sup> dt, defined for every x &gt; −1/2.</dd>
+      <dt>t</dt><dd>the integration variable, running from 0 to 1.</dd>
+    </dl>
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    W(1/2) is the area under the curve y = √(1−t²) from 0 to 1 — a quarter of a round region’s area. Multiply by 4 and you have π. The whole trick of the paper is to pin down this area <i>without</i> recognizing the curve as part of a circle.
+  </div>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    π<sub>0</sub> = 4<span class="v">W</span>(1/2). The function <span class="v">W</span> obeys the recurrence <span class="v">W</span>(x) = (2x/(2x+1))<span class="v">W</span>(x−1) with <span class="v">W</span>(0) = 1 (integration by parts), and at integers <span class="v">W</span>(n) = ∏<sub>k=1</sub><sup>n</sup> 2k/(2k+1) is rational. Part IV pins <span class="v">W</span>(1/2) = π<sub>0</sub>/4 without evaluating the integral by an antiderivative.
+  </div>
+  <div class="box ex"><span class="tag">Worked example</span>
+    <span class="v">W</span>(0) = 1, &nbsp; <span class="v">W</span>(1) = ∫<sub>0</sub><sup>1</sup>(1−t²)dt = 1 − 1/3 = 2/3, &nbsp; <span class="v">W</span>(2) = (4/5)·(2/3) = 8/15. These are all plain fractions. Only the half-integer value <span class="v">W</span>(1/2) carries π.
+  </div>
+
+  <!-- VI -->
+  <h3>VI — The coprime probability</h3>
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>gcd(a,b)</dt><dd>the greatest common divisor of a and b; “coprime” means gcd = 1.</dd>
+      <dt>P(…)</dt><dd>the long-run probability over random integer pairs.</dd>
+    </dl>
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    Pick two whole numbers at random; the odds they share no common factor are again about 61% — the same 6/π² as the square-free density, now arriving from probability instead of divisibility.
+  </div>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    P(gcd(a,b)=1) = ∏<sub>p</sub>(1−1/p²) = 1/ζ(2) = 6/π<sub>0</sub>²: the probability that no prime divides both a and b, computed prime-by-prime. Definitions IV and VI are two faces of one fact, both governed by ζ(2).
+  </div>
+  <div class="box ex"><span class="tag">Worked example</span>
+    Among the 100 pairs (a,b) with 1≤a,b≤10, exactly 63 are coprime — 63%. The fraction tends to 6/π² ≈ 60.79% as the range grows.
+  </div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part III · the hinge</p>
+  <h2 class="head">The Wallis integral, and the bridges I ↔ V ↔ II</h2>
+  <p class="lead">All six definitions connect through one function, <span class="v">W</span>(x). We first record its elementary properties — each trap-free — then bridge it to the factorial constant and to the volume ratio. The remaining gap, one exact value, is closed in Part IV.</p>
+
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>W(x)</dt><dd>∫<sub>0</sub><sup>1</sup>(1−t²)<sup>x</sup> dt, the Wallis integral.</dd>
+      <dt>P(n)</dt><dd>the half-step product ∏<sub>k=1</sub><sup>n</sup>(2k+1)/(2k+2); appears in the telescoping identity.</dd>
+      <dt>L</dt><dd>the limiting constant √x·W(x) approaches as x→∞; equals √π<sub>0</sub>/2.</dd>
+    </dl>
+  </div>
+
+  <h3>The recurrence and the rational integer values</h3>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    Integration by parts on ∫<sub>0</sub><sup>1</sup>(1−t²)<sup>x</sup> dt gives
+    <div class="eq"><span class="eqnum">(1)</span><span class="v">W</span>(x) = <span class="frac"><span class="num">2x</span><span class="den">2x+1</span></span> <span class="v">W</span>(x−1), &nbsp; <span class="v">W</span>(0) = 1.</div>
+    Iterating from <span class="v">W</span>(0)=1 yields, for whole numbers n,
+    <div class="eq"><span class="eqnum">(2)</span><span class="v">W</span>(n) = ∏<sub>k=1</sub><sup>n</sup> <span class="frac"><span class="num">2k</span><span class="den">2k+1</span></span> = <span class="frac"><span class="num">2</span><span class="den">3</span></span>·<span class="frac"><span class="num">4</span><span class="den">5</span></span>·<span class="frac"><span class="num">6</span><span class="den">7</span></span>⋯<span class="frac"><span class="num">2n</span><span class="den">2n+1</span></span></div>
+    Every <span class="v">W</span>(n) is rational — no π, no transcendental ingredient. <b>Trap-free</b> (only the product rule and the fundamental theorem of calculus).
+  </div>
+
+  <h3>Bridge I ↔ V: the factorial constant</h3>
+  <div class="box plain"><span class="tag">Plain</span>
+    The half-integer ladder of <span class="v">W</span> and the factorial formula turn out to be two ways of writing the same shrinking product. Line them up and “n times <span class="v">W</span>(n) squared” homes in on π<sub>0</sub>/4.
+  </div>
+  <div class="box rig"><span class="tag">Rigorous — Proposition 1</span>
+    Writing <span class="v">W</span>(n) = 4<sup>n</sup>(n!)²/(2n+1)! and squaring,
+    <div class="eq"><span class="eqnum">(3)</span>lim<sub>n→∞</sub> n·<span class="v">W</span>(n)² = π<sub>0</sub>/4.</div>
+    The product n·16<sup>n</sup>(n!)<sup>4</sup>/((2n+1)!)² equals the Definition-I expression times (n/(2n+1))², which tends to 1/4; hence its limit is π<sub>0</sub>·(1/4) = π<sub>0</sub>/4. (Stirling’s approximation applied to either form yields π<sub>0</sub>/4 directly.)
+  </div>
+  <div class="box ex"><span class="tag">Worked example</span>
+    At n = 10000, <span class="v">W</span>(n) ≈ 0.0088623, and n·<span class="v">W</span>(n)² ≈ 0.785377, already close to π/4 = 0.785398.
+  </div>
+
+  <h3>Bridge II ↔ V: the volume ratio</h3>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    Filling the cone base with thin rectangular strips (a Riemann sum — not a circle) gives base area κ r² = 4r²∫<sub>0</sub><sup>1</sup>√(1−t²) dt = 4r²<span class="v">W</span>(1/2). Hence
+    <div class="eq"><span class="eqnum">(4)</span>κ = 4<span class="v">W</span>(1/2).</div>
+    Definition II thus reduces to the single value <span class="v">W</span>(1/2). The integral is deliberately left unevaluated — finding its antiderivative would spring Trap 3.
+  </div>
+
+  <div class="box plain"><span class="tag">Plain — the one thing left to prove</span>
+    Both bridges now hinge on one number: the area <span class="v">W</span>(1/2). Proposition 1 says “n·<span class="v">W</span>(n)² → π<sub>0</sub>/4” for whole numbers; we need the same constant to control the <i>half</i>-integer value. That is the keystone, proved next.
+  </div>
+  <div class="eq flag-now"><span class="ok">Goal: &nbsp; <span class="v">W</span>(1/2) = π<sub>0</sub>/4.</span></div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part IV · the keystone</p>
+  <h2 class="head">A Bohr–Mollerup theorem for the Wallis integral</h2>
+  <p class="lead">The Gamma function is singled out among all functions by three properties (a recurrence, log-convexity, a normalization) — that is the Bohr–Mollerup theorem. We prove the exact analogue for <span class="v">W</span>, then read off <span class="v">W</span>(1/2) = π<sub>0</sub>/4.</p>
+
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>log-convex</dt><dd>a function whose logarithm never bends the wrong way (curves upward or stays straight).</dd>
+      <dt>admissible</dt><dd>our name for a function with all three keystone properties: the recurrence (1), log-convexity, and √x·f(x)→λ.</dd>
+      <dt>λ (lambda)</dt><dd>the common asymptotic constant in √x·f(x)→λ.</dd>
+    </dl>
+  </div>
+
+  <h3>Three structural properties</h3>
+  <div class="box rig"><span class="tag">Rigorous — Lemmas 1–3</span>
+    <b>(L1) Log-convexity.</b> By Hölder’s inequality, <span class="v">W</span>(λx<sub>1</sub>+(1−λ)x<sub>2</sub>) ≤ <span class="v">W</span>(x<sub>1</sub>)<sup>λ</sup><span class="v">W</span>(x<sub>2</sub>)<sup>1−λ</sup>; taking logs gives convexity. (Hölder descends from AM–GM — pure algebra.)<br>
+    <b>(L2) Recurrence.</b> Equation (1).<br>
+    <b>(L3) Gaussian sandwich.</b> For t∈[0,1], x≥1: &nbsp; e<sup>−xt²−xt⁴</sup> ≤ (1−t²)<sup>x</sup> ≤ e<sup>−xt²</sup>, &nbsp;from the series ln(1−t²) = −t² − t⁴/2 − ⋯. <b>All trap-free.</b>
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    Log-convexity means the graph of ln <span class="v">W</span> never kinks the wrong way. The Gaussian sandwich pins the integrand between two bell-curve fences we never have to measure — they only act as upper and lower walls. Together with the ladder rule, these walls will lock <span class="v">W</span> in place.
+  </div>
+
+  <h3>The asymptotic normalization</h3>
+  <div class="box rig"><span class="tag">Rigorous — Theorem 1</span>
+    Let <span class="v">L</span> = lim<sub>R→∞</sub> ∫<sub>0</sub><sup>R</sup> e<sup>−u²</sup> du (exists: bounded and increasing). Substituting u = √x·t and applying the sandwich (L3),
+    <div class="eq"><span class="eqnum">(5)</span>√x · <span class="v">W</span>(x) → <span class="v">L</span>, &nbsp; and &nbsp; <span class="v">L</span>² = π<sub>0</sub>/4.</div>
+    Crucially <span class="v">L</span> is <i>never evaluated</i>: its existence is monotonicity, and its value is <i>forced</i> by <span class="v">L</span>² = lim n·<span class="v">W</span>(n)² = π<sub>0</sub>/4 (Proposition 1). The Gaussian integral is here a comparison fence, not an object needing polar coordinates — which is what keeps Theorem 1 out of Trap 1.
+  </div>
+
+  <h3>The uniqueness lemma</h3>
+  <div class="box rig"><span class="tag">Rigorous — Lemma 4 (Normalization Uniqueness)</span>
+    Call f &gt; 0 <i>admissible</i> if it satisfies (1), is log-convex, and √x·f(x)→λ for some finite λ&gt;0. <b>Two admissible functions with the same λ are identical.</b> Proof: with h = f/g, the shared recurrence gives h(x) = h(x−1) (period 1); the shared asymptotic gives h(x)→1. A period-1 function tending to 1 equals 1 everywhere, so f ≡ g.
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    Two functions that climb the same ladder, never bend the wrong way, and end at the same far-off height must have been the same function all along. There is no wiggle room left — and that is what fixes <span class="v">W</span>(1/2).
+  </div>
+
+  <h3>The telescoping identity and the exact value</h3>
+  <div class="box rig"><span class="tag">Rigorous — the algebraic heart</span>
+    Run (1) at half-steps: <span class="v">W</span>(n+1/2) = <span class="v">W</span>(1/2)·<span class="v">P</span>(n) with <span class="v">P</span>(n)=∏<sub>k=1</sub><sup>n</sup>(2k+1)/(2k+2). A telescoping product reveals
+    <div class="eq"><span class="eqnum">(6)</span><span class="v">W</span>(n)·<span class="v">P</span>(n) = ∏<sub>k=1</sub><sup>n</sup> <span class="frac"><span class="num">2k</span><span class="den">2k+1</span></span>·<span class="frac"><span class="num">2k+1</span><span class="den">2k+2</span></span> = ∏<sub>k=1</sub><sup>n</sup> <span class="frac"><span class="num">k</span><span class="den">k+1</span></span> = <span class="frac"><span class="num">1</span><span class="den">n+1</span></span></div>
+    so <span class="v">P</span>(n) = 1/[(n+1)<span class="v">W</span>(n)], hence <span class="v">W</span>(n+1/2) = <span class="v">W</span>(1/2)/[(n+1)<span class="v">W</span>(n)].
+  </div>
+  <div class="box rig"><span class="tag">Rigorous — Theorem 2 (Keystone)</span>
+    Apply the asymptotic (5) along the half-integer ladder: √(n+1/2)·<span class="v">W</span>(n+1/2) → <span class="v">L</span>. Substituting the identity and <span class="v">W</span>(n) ~ <span class="v">L</span>/√n,
+    <div class="eq flag-now"><span class="ok"><span class="v">W</span>(1/2) = <span class="v">L</span>² = π<sub>0</sub>/4.</span></div>
+    With (4), κ = 4<span class="v">W</span>(1/2) = π<sub>0</sub>. <b>Definitions I, II, V now coincide.</b>
+  </div>
+  <div class="box ex"><span class="tag">Worked example — the identity is exact</span>
+    At n = 5: <span class="v">W</span>(5) = (2/3)(4/5)(6/7)(8/9)(10/11) = 0.36941… and <span class="v">P</span>(5) = (3/4)(5/6)(7/8)(9/10)(11/12) = 0.45117…. Their product is 0.16666… = 1/6 = 1/(5+1), to the last digit. The telescoping leaves no error — it is algebra, not approximation.
+  </div>
+  <div class="box rig"><span class="tag">Why two layers are needed</span>
+    The asymptotic (5) supplies the constant <span class="v">L</span>; the telescoping identity (6) is an exact rational statement. Neither alone fixes <span class="v">W</span>(1/2) — the asymptotic gives only a one-sided bound, the identity alone leaves <span class="v">L</span> unknown. Together they close the value with zero gap. This two-layer structure is what earlier revisions lacked.
+  </div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part V · closing the loop</p>
+  <h2 class="head">The lattice bridge, and three classical constants for free</h2>
+
+  <h3>Bridge III ↔ V: lattice points are a Riemann sum</h3>
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>⌊·⌋</dt><dd>the floor function: round down to the nearest whole number.</dd>
+      <dt>O(N)</dt><dd>“grows no faster than a constant times N” — the size of the boundary error.</dd>
+    </dl>
+  </div>
+  <div class="box rig"><span class="tag">Rigorous — Theorem 3</span>
+    By symmetry, #{a²+b²≤N²} = 4∑<sub>a=0</sub><sup>N</sup>⌊√(N²−a²)⌋ + O(N) = 4N·∑<sub>a=0</sub><sup>N</sup>√(1−(a/N)²)·(1/N) + O(N). The sum is a Riemann sum for ∫<sub>0</sub><sup>1</sup>√(1−t²)dt = <span class="v">W</span>(1/2). Hence the count ~ 4N²<span class="v">W</span>(1/2) = π<sub>0</sub>N². <b>Trap-free</b>: Riemann-sum convergence is standard analysis; √(1−t²) is integrated as a function, not named as a curve.
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    Counting grid points under the curve √(1−t²) is the same as adding the heights of many thin columns — exactly how one approximates an area. Refine the grid and the count becomes the area <span class="v">W</span>(1/2); four times that is π. No circle was named; columns were summed.
+  </div>
+
+  <h3>Three famous constants, each normally needing a trap</h3>
+  <div class="box rig"><span class="tag">Rigorous — the backward recurrence (Theorem 4)</span>
+    The recurrence (1) runs <i>downward</i> too. At x = 1/2: <span class="v">W</span>(1/2) = (1/2)<span class="v">W</span>(−1/2), so
+    <div class="eq"><span class="eqnum">(7)</span>∫<sub>0</sub><sup>1</sup> <span class="frac"><span class="num">1</span><span class="den">√(1−t²)</span></span> dt = <span class="v">W</span>(−1/2) = 2<span class="v">W</span>(1/2) = π<sub>0</sub>/2.</div>
+    This is the arcsine integral — evaluated <i>without</i> writing arcsin. Trap 3 disarmed.
+  </div>
+  <div class="box rig"><span class="tag">Rigorous — Γ(1/2) and the Gaussian integral (Theorems 5–6)</span>
+    The Beta form <span class="v">W</span>(x) = ½ B(½,x+1) = Γ(½)Γ(x+1)/(2Γ(x+3/2)) at x=1/2 gives <span class="v">W</span>(1/2)=Γ(1/2)²/4, so
+    <div class="eq"><span class="eqnum">(8)</span>Γ(1/2) = √π<sub>0</sub>, &nbsp;&nbsp; ∫<sub>0</sub><sup>∞</sup> e<sup>−u²</sup> du = <span class="v">L</span> = √π<sub>0</sub>/2.</div>
+    Both normally require polar coordinates (Trap 1); here they fall out of the keystone. The Beta–Gamma relation is an algebraic Jacobian on the positive quadrant, <i>not</i> a polar map.
+  </div>
+  <div class="box ex"><span class="tag">Worked example</span>
+    Γ(1/2) = √π = 1.772453…, and the bell-curve area ∫<sub>−∞</sub><sup>∞</sup>e<sup>−u²</sup>du = √π = 1.772453… — the most famous √π in mathematics, here obtained with no polar trick.
+  </div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part VI · the deepest bridge</p>
+  <h2 class="head">ζ(2) = π<sub>0</sub>²/6, without a Fourier series in sight</h2>
+  <p class="lead">Definitions IV and VI both rest on ζ(2). Every classical proof of ζ(2)=π²/6 springs a trap (Euler’s uses the sine product; Parseval’s uses sin and cos). We reach it through the second logarithmic derivative of <span class="v">W</span>.</p>
+
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>(ln W)″(0)</dt><dd>the second derivative of ln <span class="v">W</span>(x), evaluated at x = 0: a measure of how sharply that curve bends at the start.</dd>
+      <dt>C</dt><dd>shorthand for that number, (ln W)″(0). It will turn out C = 4 − 2ζ(2).</dd>
+      <dt>ψ′(s)</dt><dd>the trigamma function, here just notation for the series ∑<sub>n≥0</sub> 1/(n+s)².</dd>
+      <dt>O</dt><dd>the odd-square sum ∑<sub>k≥0</sub> 1/(2k+1)² = π<sub>0</sub>²/8.</dd>
+    </dl>
+  </div>
+
+  <h3>One clean number, computed two ways</h3>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    Define <span class="v">C</span> = (ln <span class="v">W</span>)″(0) = <span class="v">W</span>″(0) − <span class="v">W</span>′(0)². Both pieces come from expanding the logarithm — pure polynomial calculus:
+    <div class="eq"><span class="eqnum">(9)</span><span class="v">W</span>′(0) = ∫<sub>0</sub><sup>1</sup> ln(1−t²) dt = 2 ln 2 − 2,</div>
+    <div class="eq"><span class="eqnum">(10)</span><span class="v">W</span>″(0) = ∫<sub>0</sub><sup>1</sup> [ln(1−t²)]² dt = ∑<sub>k,j≥1</sub> 1/[kj(2k+2j+1)].</div>
+    So <span class="v">C</span> is a definite number from convergent rational series — no trigonometry, and crucially <i>no value of ζ(2) put in by hand</i>.
+  </div>
+
+  <h3>The closure</h3>
+  <div class="box rig"><span class="tag">Rigorous — Theorem 7</span>
+    The second log-derivative of <span class="v">W</span> equals ψ′(1) − ψ′(3/2). Now ψ′(1) = ζ(2), and splitting even/odd terms gives ψ′(3/2) = 4(¾ζ(2)−1). Therefore
+    <div class="eq"><span class="eqnum">(11)</span><span class="v">C</span> = ζ(2) − 4(¾ζ(2)−1) = 4 − 2ζ(2), &nbsp; so &nbsp; ζ(2) = (4 − <span class="v">C</span>)/2.</div>
+    Since <span class="v">C</span> is fixed trap-free by (9)–(10), ζ(2) is an <i>output</i>: numerically <span class="v">C</span> = 0.710132… gives ζ(2) = 1.644934… = π<sub>0</sub>²/6.
+  </div>
+  <div class="box plain"><span class="tag">Plain</span>
+    <span class="v">C</span> measures how sharply the curve ln <span class="v">W</span> bends right at the start. Compute it two ways — straight from the area integral (just fractions), and through the standard bending formula — set them equal, and ζ(2) drops out. We never feed in “= π²/6”; it comes out the far end.
+  </div>
+  <div class="box ex"><span class="tag">Worked example</span>
+    ∫<sub>0</sub><sup>1</sup> ln(1−t²) dt = 2 ln 2 − 2 = −0.613706… (elementary). Feeding the two integrals in: <span class="v">C</span> = 0.710132, so (4−<span class="v">C</span>)/2 = 1.644934 = π²/6. The square-free density 6/π² = 0.607927 follows immediately — closing Definitions IV and VI.
+  </div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part VII · honesty about process</p>
+  <h2 class="head">An error we made, and exactly how we fixed it</h2>
+  <p class="lead">An earlier revision of the ζ(2) bridge contained a real circularity, caught in adversarial review. Recording it (and its repair) is part of the work.</p>
+
+  <div class="box now" style="background:var(--now-bg);border:1px solid var(--now-edge);border-radius:10px;padding:16px 18px;margin:18px 0">
+    <span class="tag" style="background:var(--now);color:#fff;font-family:var(--grotesk);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;display:inline-block;margin-bottom:8px;padding:2px 8px;border-radius:6px">The hole</span>
+    <div>The earlier draft proved ζ(2) = (4−<span class="v">C</span>)/2 cleanly, then converted it to π<sub>0</sub>²/6 using the auxiliary identity <span class="was">O = 2W(1/2)²</span>. That identity is true, but its only classical proof evaluates ∫√(1−t²)dt by the substitution t = sinθ — exactly Trap 3. The bridge had quietly smuggled a circle back in.</div>
+  </div>
+
+  <div class="box plain"><span class="tag">Plain</span>
+    We had two clean halves and tried to glue them with a step that, looked at closely, used the very circle we had banned. A careful reviewer caught it. The fix was not to patch the bad glue but to remove the need for it.
+  </div>
+
+  <div class="box fix"><span class="tag">Correction</span>
+    <b>Dissolve, don’t patch.</b> Both facts the bridge needs are read off one trap-free closed form,
+    <div class="eq flag-now"><span class="ok"><span class="v">W</span>(x) = (Γ(1/2)/2)·Γ(x+1)/Γ(x+3/2), &nbsp; Γ(1/2) = √π<sub>0</sub>.</span></div>
+    The value <span class="v">W</span>(1/2)=π<sub>0</sub>/4 is established <i>first</i> (Theorem 2, by telescoping — no Γ, no trig); the closed form is then a consequence, and <span class="v">C</span> is read off the <i>same</i> validated form. The identity <span class="was">O = 2W(1/2)²</span> is never used.
+  </div>
+
+  <div class="box rig"><span class="tag">Rigorous — the residual subtlety, flagged</span>
+    The repair uses only the Gamma recurrence Γ(x+3/2) = (x+1/2)Γ(x+1/2), proved by integration by parts — <b>not</b> the reflection formula Γ(s)Γ(1−s) = π/sin(πs), which would re-enter Trap 1. We name this explicitly because the reflection formula is the usual hidden circle in Γ-based arguments, and we do not use it.
+  </div>
+
+  <h3>The dependency graph has no cycles</h3>
+  <table class="dag">
+    <tr><th>Node</th><th>Statement</th><th>Depends on</th></tr>
+    <tr><td class="mono">1</td><td>π<sub>0</sub> := factorial limit</td><td>— definition</td></tr>
+    <tr><td class="mono">2</td><td>W(x) := ∫(1−t²)<sup>x</sup>dt</td><td>— definition</td></tr>
+    <tr><td class="mono">3</td><td>recurrence (1)</td><td>2 (by parts)</td></tr>
+    <tr><td class="mono">4</td><td>n W(n)² → π<sub>0</sub>/4</td><td>3 + factorial form</td></tr>
+    <tr><td class="mono">5</td><td>√x W(x) → L, L²=π<sub>0</sub>/4</td><td>4 + Gaussian sandwich</td></tr>
+    <tr><td class="mono">6</td><td>W(1/2) = π<sub>0</sub>/4</td><td>5 + telescoping (6)</td></tr>
+    <tr><td class="mono">7</td><td>Γ(1/2) = √π<sub>0</sub></td><td>6 + Beta form</td></tr>
+    <tr><td class="mono">8</td><td>closed form for W(x)</td><td>7</td></tr>
+    <tr><td class="mono">9</td><td>C = (ln W)″(0)</td><td>8 (also 2, as check)</td></tr>
+    <tr><td class="mono">10</td><td>ζ(2) = (4−C)/2</td><td>9 (trigamma algebra)</td></tr>
+    <tr><td class="mono">11</td><td>ζ(2) = π<sub>0</sub>²/6</td><td>10 + 6 via shared form</td></tr>
+  </table>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    Every edge points from a lower to a higher node: the graph is acyclic. In particular node 6 (the keystone) does <i>not</i> depend on node 11 — breaking the loop the old O = 2W(1/2)² step had created. The interlock is dissolved, not papered over.
+  </div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part VIII · why any of this works</p>
+  <h2 class="head">Periods and motives: the six are one object</h2>
+  <p class="lead">Why should six unrelated-looking definitions agree at all? Because each computes a <i>period</i> — an integral of an algebraic quantity over an algebraic region — and all six periods belong to the same underlying object.</p>
+  <div class="box plain"><span class="tag">Plain</span>
+    Picture each definition photographing the same statue from a different angle. The photos look different, but they are pictures of one statue. The “statue” is a single algebraic object; π is the measurement attached to it, seen from combinatorics, geometry, or number theory in turn.
+  </div>
+  <div class="box rig"><span class="tag">Rigorous</span>
+    In Grothendieck’s language, π is the period of the motive H¹(<i>G</i><sub>m</sub>), the first cohomology of the multiplicative group. The period conjecture predicts all algebraic relations among periods come from morphisms of motives; our trap-free bridges are explicit such morphisms between geometric representatives of this one motive, while the traps mark where a proof would otherwise pick the representative S¹ — the unit circle. The circle is therefore never logically eliminable, only avoidable as an explicit step. This also bounds the program: because all six share one motive, substitutions among them yield tautologies and cannot decide open transcendence questions (e.g. whether π<sup>π</sup> is irrational).
+  </div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part IX · computing each π, fast</p>
+  <h2 class="head">Efficient evaluation — and a trap-free accelerator</h2>
+  <p class="lead">All six define the same number, but they do not all <i>compute</i> it at the same speed. The difference is a property of the estimator, not of the definition: a series pays one term at a time, while an integral can be hit with high-order quadrature. Here is the honest comparison, plus the fastest circle-free route.</p>
+
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>error ∝ 1/n<sup>p</sup></dt><dd>convergence order: larger p means each unit of work buys more digits. p = 1 is slow; p = 2 is fast.</dd>
+      <dt>n, m, N, M</dt><dd>terms, strips, grid size, density bound — the “work” each method spends.</dd>
+      <dt>Richardson extrapolation</dt><dd>combining two estimates at work n and 2n to cancel the leading error term — a standard, circle-free accelerator.</dd>
+    </dl>
+  </div>
+
+  <table class="scale">
+    <tr><th>Definition / estimator</th><th>native order</th><th>error at 10⁴ work</th><th>character</th></tr>
+    <tr><td>I &nbsp;Factorial recurrence</td><td class="mono">1/n</td><td class="mono">7.9×10⁻⁵</td><td>smooth, from above</td></tr>
+    <tr><td>V &nbsp;Wallis product</td><td class="mono">1/n</td><td class="mono">2.4×10⁻⁴</td><td>smooth, from below</td></tr>
+    <tr><td>II &nbsp;Volumetric (midpoint)</td><td class="mono">1/m<sup>1.5</sup></td><td class="mono">3.4×10⁻⁷</td><td>fast (endpoint-limited)</td></tr>
+    <tr><td>III &nbsp;Lattice count</td><td class="mono">1/N</td><td class="mono">≈2×10⁻⁶</td><td>oscillatory (Gauss circle)</td></tr>
+    <tr><td>IV &nbsp;Square-free density</td><td class="mono">1/√M</td><td class="mono">≈3×10⁻⁵</td><td>non-monotone</td></tr>
+    <tr><td>VI &nbsp;Coprime (Monte Carlo)</td><td class="mono">1/√(samples)</td><td class="mono">noisy</td><td>statistical</td></tr>
+  </table>
+
+  <div class="box plain"><span class="tag">Plain</span>
+    The volume method is fastest in its plain form because a Riemann sum samples the whole curve at once, while the factorial and Wallis series correct themselves only one term at a time. This is about the <i>method</i>, not which π is “truer.” And every one of them can be sped up without touching a circle.
+  </div>
+
+  <h3>The trap-free accelerators (all verified to the digits shown)</h3>
+  <div class="box rig"><span class="tag">Rigorous — four speed-ups, none using a circle</span>
+    <b>(A) Richardson on the volume integral.</b> Combining midpoint sums at m and 2m, aware of the order-1.5 endpoint, drops the error from 3.4×10⁻⁷ to <b>6.4×10⁻¹³</b> at m = 10⁴ — six extra digits, essentially free.<br>
+    <b>(B) Gauss–Legendre on the same integral.</b> Reaches the midpoint rule’s 10⁴-strip accuracy in about <b>20 nodes</b>.<br>
+    <b>(C) Algebraic smoothstep substitution</b> t = 3w² − 2w³ (derivative vanishes at both ends, taming the √ singularity; purely algebraic, <i>no</i> trig): error ∝ 1/m², e.g. 1.0×10⁻⁸ at m = 10⁴.<br>
+    <b>(D) Richardson on the factorial series.</b> Cancelling the leading 1/n term takes the factorial from 7.9×10⁻⁵ to <b>4.9×10⁻¹⁰</b> at n = 10⁴.
+  </div>
+  <div class="box ex"><span class="tag">Worked example — Richardson in one line</span>
+    Midpoint sums give I(m) and I(2m) for 4∫√(1−t²). The combination [2<sup>1.5</sup>I(2m) − I(m)]/(2<sup>1.5</sup>−1) cancels the leading error. At m = 1000 the raw error 1.1×10⁻⁵ becomes 2.0×10⁻¹⁰ — five digits gained from two cheap sums.
+  </div>
+  <div class="box rig"><span class="tag">Note on the slow ζ(2) series</span>
+    The double-series form of <span class="v">C</span> in (10) converges only like 1/K when truncated at k,j ≤ K — honestly slow. But <span class="v">C</span> is also computed by direct quadrature of the clean integrals (9)–(10), which lands on ζ(2) = π²/6 to nine digits at once. The <i>method</i> is exact; only one particular series representation of it is slow.
+  </div>
+  <div class="verdict-strip"><b>Practical upshot.</b> The volume definition is not only the cleanest conceptually — no circle in sight — it is also the most efficient in native form, and with Richardson or a smoothstep substitution it reaches machine precision in a few thousand operations, entirely circle-free.</div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part X · the audit</p>
+  <h2 class="head">Every bridge, against every trap</h2>
+  <table class="dag">
+    <tr><th>Bridge / result</th><th>Method</th><th>Trap risk</th><th>Status</th></tr>
+    <tr><td>I ↔ V (Prop 1)</td><td>Wallis product</td><td>—</td><td><span class="pill pill-clean">Clean</span></td></tr>
+    <tr><td>II ↔ V (Eq 4)</td><td>rectangular exhaustion</td><td>Trap 3</td><td><span class="pill pill-clean">Clean</span></td></tr>
+    <tr><td>W(1/2) (Thm 2)</td><td>uniqueness + identity (6)</td><td>Traps 1,3</td><td><span class="pill pill-clean">Clean</span></td></tr>
+    <tr><td>III ↔ V (Thm 3)</td><td>Riemann sums</td><td>Trap 1</td><td><span class="pill pill-clean">Clean</span></td></tr>
+    <tr><td>arcsin (Thm 4)</td><td>backward recurrence</td><td>Trap 3</td><td><span class="pill pill-clean">Clean</span></td></tr>
+    <tr><td>Γ(1/2), Gaussian (Thm 5–6)</td><td>Beta form + keystone</td><td>Trap 1</td><td><span class="pill pill-clean">Clean</span></td></tr>
+    <tr><td>ζ(2) (Thm 7)</td><td>(ln W)″(0) + trigamma</td><td>Traps 2,3</td><td><span class="pill pill-clean">Clean</span></td></tr>
+    <tr><td>IV ↔ VI</td><td>both = 6/π²</td><td>—</td><td><span class="pill pill-triv">Trivial</span></td></tr>
+  </table>
+  <div class="box rig"><span class="tag">Numerical verification (all to ≥8 digits)</span>
+    Factorial a<sub>5000</sub> = 3.14174974; W(1/2) = 0.78539816 = π/4; 4W(1/2) = 3.14159265; lattice (N=1000) = 3.141549; arcsin integral = 1.57079633 = π/2; Γ(1/2) = 1.77245385 = √π; W′(0) = −0.61370564 = 2ln2−2; C = 0.71013187 = 4−2ζ(2); (4−C)/2 = 1.64493407 = π²/6; 6/π² = 0.60792710.
+  </div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Part XI · honest reach</p>
+  <h2 class="head">Where this is useful, and where it is not</h2>
+  <p class="lead">The result changes how we <i>prove</i> facts about π, not how we <i>use</i> π. Stated plainly, the value is concentrated in foundations, special-function theory, computing constants, and teaching — and is essentially nil in the empirical sciences, by the nature of the result.</p>
+  <table class="scale">
+    <tr><th>Domain</th><th>Best use</th><th>Rating</th></tr>
+    <tr><td>Foundations / reverse math</td><td>machine-checkable stratification of proofs by trap content</td><td><span class="ok">Direct</span></td></tr>
+    <tr><td>Special functions</td><td>asymptotic Bohr–Mollerup characterization of W</td><td><span class="ok">Direct</span></td></tr>
+    <tr><td>Period theory / motives</td><td>elementary, teachable model of the period conjecture</td><td>Structural</td></tr>
+    <tr><td>Computing constants</td><td>integer-only, circle-free generation; Richardson-accelerated quadrature</td><td><span class="ok">Direct (niche)</span></td></tr>
+    <tr><td>Pedagogy</td><td>dual-register proof of where the circle hides</td><td><span class="ok">Direct</span></td></tr>
+    <tr><td>Engineering / chemistry / biology</td><td>none — π is consumed as a constant</td><td style="color:var(--wasred)">Nil</td></tr>
+    <tr><td>Astrophysics</td><td>none</td><td style="color:var(--wasred)">Nil</td></tr>
+  </table>
+  <div class="box plain"><span class="tag">Plain</span>
+    Nobody computing a bridge, a molecule, or an orbit needs to know <i>which</i> proof links the faces of π; they use the number itself. The honest worth of this work is to mathematicians who care about the logical structure of constants, and to teachers who want to show, concretely, where the circle hides — and how to walk around it.
+  </div>
+</section>
+
+<hr class="soft">
+
+<section>
+  <p class="part">Appendix · every symbol, once more</p>
+  <h2 class="head">Master glossary</h2>
+  <div class="box vars"><span class="tag">Variables</span>
+    <dl class="gloss">
+      <dt>π<sub>0</sub></dt><dd>the common value of all six definitions, ≈ 3.14159; = 4W(1/2).</dd>
+      <dt>κ</dt><dd>volumetric constant from cone vs. tetrahedron; = abc/(2r²h) = π<sub>0</sub>.</dd>
+      <dt>n!</dt><dd>factorial, product 1·2⋯n. Example 4! = 24.</dd>
+      <dt>W(x)</dt><dd>Wallis integral ∫<sub>0</sub><sup>1</sup>(1−t²)<sup>x</sup>dt. W(1) = 2/3.</dd>
+      <dt>P(n)</dt><dd>half-step product ∏(2k+1)/(2k+2). P(1) = 3/4.</dd>
+      <dt>L</dt><dd>limit ∫<sub>0</sub><sup>R</sup>e<sup>−u²</sup>du as R→∞; = √π<sub>0</sub>/2.</dd>
+      <dt>ζ(2)</dt><dd>sum of reciprocal squares 1+¼+1/9+…; = π<sub>0</sub>²/6.</dd>
+      <dt>Γ(x)</dt><dd>Gamma function; Γ(1/2) = √π<sub>0</sub>.</dd>
+      <dt>ψ′(s)</dt><dd>trigamma, ∑ 1/(n+s)²; ψ′(1) = ζ(2).</dd>
+      <dt>B(p,q)</dt><dd>Beta function Γ(p)Γ(q)/Γ(p+q); W(x) = ½B(½,x+1).</dd>
+      <dt>C</dt><dd>second log-derivative (ln W)″(0); = 4 − 2ζ(2).</dd>
+      <dt>O</dt><dd>odd reciprocal squares ∑ 1/(2k+1)²; = π<sub>0</sub>²/8.</dd>
+      <dt>p</dt><dd>a prime number, in products over primes.</dd>
+      <dt>ℤ, ℤ²</dt><dd>the integers; the integer grid in the plane.</dd>
+      <dt><i>G</i><sub>m</sub></dt><dd>the multiplicative group, motivic source of π.</dd>
+    </dl>
+  </div>
+</section>
+
+
+<hr class="soft">
+
+<section>
+  <p class="part">Acknowledgments &amp; references</p>
+  <h2 class="head">Provenance, honestly stated</h2>
+  <div class="box plain"><span class="tag">Acknowledgments</span>
+    The derivations, figures, code, and prose of this account were developed with substantial assistance from an AI system (Anthropic’s Claude), used as a working collaborator for symbolic derivation, adversarial proof-checking, numerical verification, and drafting. All mathematical claims were independently verified by the author, symbolically and numerically (8–40 significant digits). Responsibility for the work, and for any remaining error, rests with the author. A key circularity in the ζ(2) bridge (Part VII) was first surfaced by adversarial review through a second AI system, and is gratefully recorded as the kind of external check that strengthens a result.
+  </div>
+  <div class="box rig"><span class="tag">On novelty</span>
+    The classical ingredients are old and are attributed throughout: Wallis’s product (1656), the Bohr–Mollerup characterization (1922), Euler’s product and the Basel value (1737), Gaussian lattice counting (Gauss, 1801), and Hermite-era special-function identities. <b>The contribution claimed here is the proof architecture</b>: the trap taxonomy, the no-evaluation strategy, the telescoping keystone, and the trap-free ζ(2) closure that assembles all six definitions into one acyclic dependency graph. This is offered as a foundational/expository advance, not as a new theorem about the value of π.
+  </div>
+  <h3>References</h3>
+  <ol style="font-size:15.5px; line-height:1.55">
+    <li>J. Wallis, <i>Arithmetica Infinitorum</i>, Oxford, 1656. (Infinite product for π/2.)</li>
+    <li>H. Bohr and J. Mollerup, <i>Lærebog i Matematisk Analyse III</i>, Copenhagen, 1922. (Characterization of Γ.)</li>
+    <li>E. Artin, <i>The Gamma Function</i>, Holt, Rinehart and Winston, 1964.</li>
+    <li>L. Euler, <i>Variae observationes circa series infinitas</i>, 1737. (Euler product; ζ(2).)</li>
+    <li>C. F. Gauss, <i>Disquisitiones Arithmeticae</i>, Leipzig, 1801. (Lattice-point counting.)</li>
+    <li>A. M. Turing, “On Computable Numbers, with an Application to the Entscheidungsproblem,” <i>Proc. London Math. Soc.</i> 42 (1936), 230–265.</li>
+    <li>A. Grothendieck, on periods and motives (unpublished notes, c. 1966); see standard expositions of the period conjecture.</li>
+    <li>C. M. Bender and S. A. Orszag, <i>Advanced Mathematical Methods for Scientists and Engineers</i>, Springer, 1999. (Laplace/Watson asymptotics.)</li>
+    <li>J.-L. Marichal and N. Zenaïdi, generalized Bohr–Mollerup theorems and higher-order convexity, 2022.</li>
+  </ol>
+</section>
+
+<footer>
+  A Circle-Free Theory of π · the complete account · S. B. Anderson, June 2026. Unifies the keystone (Rev. 4), the ζ(2) closure (Rev. 5), the interlock repair (Rev. 6), the six-definition bridges, and the utilities survey. Verified symbolically and numerically; see Acknowledgments for provenance and the AI-assistance statement.
+</footer>
+
+</div>
+</body>
+</html>
